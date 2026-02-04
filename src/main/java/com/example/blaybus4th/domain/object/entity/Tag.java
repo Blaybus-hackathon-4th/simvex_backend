@@ -1,4 +1,4 @@
-package com.example.blaybus4th.object.entity;
+package com.example.blaybus4th.domain.object.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

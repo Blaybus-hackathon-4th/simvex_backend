@@ -1,10 +1,9 @@
-package com.example.blaybus4th.object.entity;
+package com.example.blaybus4th.domain.object.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
