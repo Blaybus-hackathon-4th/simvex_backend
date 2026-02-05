@@ -25,4 +25,18 @@ public class Note {
 
     private String noteContent;
 
+
+    public static Note createNote(Member member, Object object, String noteContent) {
+        Note note = new Note();
+        note.member = member;
+        note.object = object;
+        note.noteContent = noteContent;
+        return note;
+    }
+
+    public void updateNote(String noteContent) {
+        this.noteContent = noteContent;
+    }
+
+
 }
