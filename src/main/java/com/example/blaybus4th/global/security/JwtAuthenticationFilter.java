@@ -28,15 +28,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = getAccessTokenFromCookie(request);
 
-        // 토큰이 없거나 화이트리스트 대상이면 다음 필터로 진행
-        if(token == null){
-            filterChain.doFilter(request,response);
+        // 토큰이 없으면 인증 처리를 스킵하고 다음 필터로 진행
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        try{
+        try {
 
             String decryptedToken = AesUtil.decrypt(token);
-            if(jwtTokenProvider.validateToken(decryptedToken)){
+            if (jwtTokenProvider.validateToken(decryptedToken)) {
                 String memberId = jwtTokenProvider.getMemberId(decryptedToken);
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         memberId,
@@ -46,11 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             SecurityContextHolder.clearContext();
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
 
     }
 

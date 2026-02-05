@@ -1,5 +1,7 @@
 package com.example.blaybus4th.global.security;
 
+import com.example.blaybus4th.global.apiPayload.code.GeneralErrorCode;
+import com.example.blaybus4th.global.apiPayload.exception.GeneralException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -65,12 +67,12 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return true;
-//        }catch (ExpiredJwtException e){ 토큰 만료 시 예외 처리 작업 예정
-//
-//        }catch (JwtException | IllegalArgumentException e){ 유효하지 않은 토큰 예외 처리 작업 예정
-//
+        }catch (ExpiredJwtException e){
+            throw new GeneralException(GeneralErrorCode.ACCESS_TOKEN_EXPIRED);
+        }catch (JwtException | IllegalArgumentException e){
+            throw new GeneralException(GeneralErrorCode.INVALID_TOKEN_FORMAT);
         } catch (Exception e) {
-            return false;
+            throw new GeneralException(GeneralErrorCode.INVALID_AUTHORIZATION_HEADER);
         }
     }
 
@@ -84,12 +86,12 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
-//        }catch (ExpiredJwtException e){ 토큰 만료 시 예외 처리 작업 예정
-//
-//        }catch (JwtException | IllegalArgumentException e){ 유효하지 않은 토큰 예외 처리 작업 예정
-//
+        }catch (ExpiredJwtException e){
+            throw new GeneralException(GeneralErrorCode.ACCESS_TOKEN_EXPIRED);
+        }catch (JwtException | IllegalArgumentException e){
+            throw new GeneralException(GeneralErrorCode.INVALID_TOKEN_FORMAT);
         } catch (Exception e) {
-            return null;
+            throw new GeneralException(GeneralErrorCode.INVALID_AUTHORIZATION_HEADER);
         }
 
     }
