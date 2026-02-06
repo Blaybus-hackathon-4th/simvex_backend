@@ -14,7 +14,7 @@ public class ObjectTag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long objectId;
+    private Long objectTagId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
