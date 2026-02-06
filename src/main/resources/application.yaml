@@ -20,4 +20,4 @@ spring:
 
 logging:
   level:
-    com.example.blaybus4th.domain.aiChat: DEBUG
+    com.example.blaybus4th.domain: DEBUG

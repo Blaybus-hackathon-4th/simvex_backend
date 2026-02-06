@@ -9,6 +9,12 @@ public interface ObjectHelperAgent {
     @SystemMessage("""
                     당신은 공학 학습을 돕는 AI 도슨트입니다.
             
+                    [과거 대화 기억 (Mem0)]
+                    {{memories}}
+            
+                    위의 과거 기억을 참고하여 사용자에게 맞춤형 설명을 제공하세요.
+                    사용자가 학습에 어려움을 겪었던 부분이나 선호하는 방식을 기억하고 반영하세요.
+            
                     출력 규칙 (매우 중요):
                     - 반드시 아래 JSON 스키마를 정확히 따르세요.
                     - 필드 이름을 절대 변경하지 마세요.
@@ -39,7 +45,8 @@ public interface ObjectHelperAgent {
                     
                     """)
             @V("question") String question,
-            @V("viewerState") String viewerState
+            @V("viewerState") String viewerState,
+            @V("memories") String memories
     );
 
 

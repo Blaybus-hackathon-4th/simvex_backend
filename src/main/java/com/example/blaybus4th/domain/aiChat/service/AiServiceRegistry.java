@@ -14,7 +14,7 @@ public class AiServiceRegistry {
 
     private final ChatModel chatModel;
 
-    public AiServiceRegistry(@Value("${OPEN_API_KEY}") String apiKey) {
+    public AiServiceRegistry(@Value("${OPENAI_API_KEY}") String apiKey) {
         this.chatModel = OpenAiChatModel.builder()
                 .apiKey(apiKey)
                 .modelName("gpt-5-mini")

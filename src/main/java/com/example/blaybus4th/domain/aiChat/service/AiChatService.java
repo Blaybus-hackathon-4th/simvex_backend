@@ -4,6 +4,8 @@ import com.example.blaybus4th.domain.aiChat.agent.ObjectHelperAgent;
 import com.example.blaybus4th.domain.aiChat.dto.request.AiChatRequest;
 import com.example.blaybus4th.domain.aiChat.dto.response.AiChatResponse;
 import com.example.blaybus4th.domain.aiChat.repository.AiChatRepository;
+import com.example.blaybus4th.domain.aiChat.tool.Mem0Tools;
+import com.example.blaybus4th.domain.aiChat.tool.MemberContextHolder;
 import com.example.blaybus4th.domain.member.dto.response.InstitutionsListResponse;
 import com.example.blaybus4th.domain.member.entity.Member;
 import com.example.blaybus4th.domain.member.repository.MemberRepository;
@@ -32,41 +34,58 @@ public class AiChatService {
     private final AiServiceRegistry aiServiceRegistry;
     private final ChatMemoryManager chatMemoryManager;
     private final ObjectMapper objectMapper;
+    private final Mem0Service mem0Service; // 추가
+    private final Mem0Tools mem0Tools;
 
     @Transactional
     public AiChatResponse aiChat(Long objectId, Long memberId, AiChatRequest request) throws JsonProcessingException {
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(()-> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
+        MemberContextHolder.set(String.valueOf(memberId));
 
-        Object object = objectRepository.findById(objectId)
-                .orElseThrow(() -> new GeneralException(GeneralErrorCode.OBJECT_NOT_FOUND));
+        try {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new GeneralException(GeneralErrorCode.MEMBER_NOT_FOUND));
 
-        ChatMemory chatMemory = chatMemoryManager.memoryOf(memberId);
+            Object object = objectRepository.findById(objectId)
+                    .orElseThrow(() -> new GeneralException(GeneralErrorCode.OBJECT_NOT_FOUND));
 
-        String viewStateJson = toJson(request.getViewState());
+            ChatMemory chatMemory = chatMemoryManager.memoryOf(memberId);
 
-        ObjectHelperAgent agent = AiServices.builder(ObjectHelperAgent.class)
-                .chatModel(aiServiceRegistry.getChatModel())
-                .chatMemory(chatMemory)
-                .build();
+            String viewStateJson = toJson(request.getViewState());
 
-        String rawText = agent.chat(
-                request.getUserMessage(),
-                viewStateJson
-        );
+            String mem0Memory = mem0Service.searchMemory(request.getUserMessage());
 
-        String cleanJson = sanitizeJsonResponse(rawText);
+            if (mem0Memory.isEmpty()) {
+                mem0Memory = "관련된 과거 기억이 없습니다.";
+            }
 
-        return parseResponse(cleanJson);
+
+            ObjectHelperAgent agent = AiServices.builder(ObjectHelperAgent.class)
+                    .chatModel(aiServiceRegistry.getChatModel())
+                    .chatMemory(chatMemory)
+                    .tools(mem0Tools)
+                    .build();
+
+            String rawText = agent.chat(
+                    request.getUserMessage(),
+                    viewStateJson,
+                    mem0Memory
+            );
+
+            String cleanJson = sanitizeJsonResponse(rawText);
+
+            return parseResponse(cleanJson);
+
+        }finally {
+            MemberContextHolder.clear();
+        }
 
 
     }
 
 
-
-    private String toJson(Object object) {
-        try{
+    private String toJson(java.lang.Object object) {
+        try {
             return objectMapper
                     .writerWithDefaultPrettyPrinter()
                     .writeValueAsString(object);
@@ -109,10 +128,6 @@ public class AiChatService {
 
         return json;
     }
-
-
-
-
 
 
 }
