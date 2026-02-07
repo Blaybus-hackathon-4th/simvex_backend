@@ -10,6 +10,10 @@ import java.util.List;
 @Getter
 public class AiChatResponse {
 
+    private Long chatSessionId;
+
+    private String chatSessionTitle;
+
     private String aiMessage;
 
     private List<AiCommand> commands;
