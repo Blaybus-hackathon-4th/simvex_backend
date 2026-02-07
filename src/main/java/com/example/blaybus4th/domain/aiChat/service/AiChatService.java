@@ -3,18 +3,24 @@ package com.example.blaybus4th.domain.aiChat.service;
 import com.example.blaybus4th.domain.aiChat.agent.ObjectHelperAgent;
 import com.example.blaybus4th.domain.aiChat.dto.request.AiChatRequest;
 import com.example.blaybus4th.domain.aiChat.dto.response.AiChatResponse;
+import com.example.blaybus4th.domain.aiChat.dto.response.ChatSessionResponse;
+import com.example.blaybus4th.domain.aiChat.entity.ChatMessage;
+import com.example.blaybus4th.domain.aiChat.entity.ChatSession;
 import com.example.blaybus4th.domain.aiChat.repository.AiChatRepository;
+import com.example.blaybus4th.domain.aiChat.repository.ChatSessionRepository;
 import com.example.blaybus4th.domain.aiChat.tool.Mem0Tools;
 import com.example.blaybus4th.domain.aiChat.tool.MemberContextHolder;
 import com.example.blaybus4th.domain.member.dto.response.InstitutionsListResponse;
 import com.example.blaybus4th.domain.member.entity.Member;
 import com.example.blaybus4th.domain.member.repository.MemberRepository;
+import com.example.blaybus4th.domain.object.entity.Object;
 import com.example.blaybus4th.domain.object.repository.ObjectRepository;
 import com.example.blaybus4th.global.apiPayload.code.GeneralErrorCode;
 import com.example.blaybus4th.global.apiPayload.exception.GeneralException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.service.AiServices;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +42,7 @@ public class AiChatService {
     private final ObjectMapper objectMapper;
     private final Mem0Service mem0Service; // 추가
     private final Mem0Tools mem0Tools;
+    private final ChatSessionRepository chatSessionRepository;
 
     @Transactional
     public AiChatResponse aiChat(Long objectId, Long memberId, AiChatRequest request) throws JsonProcessingException {
@@ -48,6 +55,19 @@ public class AiChatService {
 
             Object object = objectRepository.findById(objectId)
                     .orElseThrow(() -> new GeneralException(GeneralErrorCode.OBJECT_NOT_FOUND));
+
+            ChatSession chatSession;
+
+            if (request.getChatSessionId() == null) {
+                chatSession = ChatSession.createChatSession(member, object);
+                chatSessionRepository.save(chatSession);
+            } else {
+                chatSession = chatSessionRepository.findById(request.getChatSessionId())
+                        .orElseThrow(() -> new GeneralException(GeneralErrorCode.CHAT_SESSION_NOT_FOUND));
+            }
+
+            ChatMessage userMessage = ChatMessage.userMessage(request.getUserMessage());
+            chatSession.addMessage(userMessage);
 
             ChatMemory chatMemory = chatMemoryManager.memoryOf(memberId);
 
@@ -74,12 +94,37 @@ public class AiChatService {
 
             String cleanJson = sanitizeJsonResponse(rawText);
 
-            return parseResponse(cleanJson);
+            AiChatResponse response = parseResponse(cleanJson);
 
-        }finally {
+            if (chatSession.getChatSessionTitle().isEmpty()) {
+                chatSession.updateTitle(response.getChatSessionTitle());
+            }
+
+            ChatMessage aiMessage = ChatMessage.aiMessage(response.getAiMessage());
+            chatSession.addMessage(aiMessage);
+
+            return response;
+
+        } finally {
             MemberContextHolder.clear();
         }
 
+
+    }
+
+
+
+    @Transactional
+    public List<ChatSessionResponse> getChatSession(Long objectId, Long memberId) {
+
+        List<ChatSession> chatSession = chatSessionRepository.findByObjectIdAndMemberId(memberId, objectId);
+
+        if (chatSession.isEmpty()) {
+            throw new GeneralException(GeneralErrorCode.CHAT_SESSION_NOT_FOUND);
+        }
+        return chatSession.stream()
+                .map(ChatSessionResponse::from)
+                .toList();
 
     }
 
@@ -128,7 +173,6 @@ public class AiChatService {
 
         return json;
     }
-
 
 }
 
