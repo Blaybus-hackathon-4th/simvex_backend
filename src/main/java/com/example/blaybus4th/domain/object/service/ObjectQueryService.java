@@ -7,16 +7,13 @@ import com.example.blaybus4th.domain.object.entity.ModelComponents;
 import com.example.blaybus4th.domain.object.entity.enums.ObjectCategory;
 import com.example.blaybus4th.domain.object.repository.ModelRepository;
 import com.example.blaybus4th.domain.object.repository.ObjectRepository;
-import com.example.blaybus4th.global.apiPayload.code.BaseErrorCode;
 import com.example.blaybus4th.global.apiPayload.code.GeneralErrorCode;
 import com.example.blaybus4th.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.blaybus4th.domain.object.converter.ObjectConverter.toElementResponseDTO;
 import static com.example.blaybus4th.domain.object.converter.ObjectConverter.toObjectCardResponseDTO;
 
 @Service
@@ -59,5 +56,16 @@ public class ObjectQueryService {
                 .map(ObjectConverter::toElementResponseDTO)
                 .toList();
         return ObjectConverter.toObjectComponentResponseDTO(model, elements);
+    }
+
+    public List<ObjectResponseDTO.ObjectCardResponseDTO> searchObjects(String keyword) {
+        return objectRepository.findByObjectNameKrOrEn(keyword).stream()
+                .map(o -> toObjectCardResponseDTO(
+                        o,
+                        o.getObjectTags().stream()
+                                .map(ot -> ot.getTag().getTagName())
+                                .toList()
+                ))
+                .toList();
     }
 }

@@ -49,4 +49,15 @@ public class ObjectController {
         ObjectResponseDTO.ObjectComponentResponseDTO result = objectQueryService.getObjectComponentResponseDTO(componentId);
         return ApiResponse.onSuccess(result);
     }
+
+    /**
+     * 오브젝트 키워드 검색 api
+     * 담당자 : 이소정
+     */
+    @GetMapping("/search")
+    public ApiResponse<List<ObjectResponseDTO.ObjectCardResponseDTO>> searchObject(
+            @RequestParam String keyword
+    ){
+        return ApiResponse.onSuccess(objectQueryService.searchObjects(keyword));
+    }
 }
