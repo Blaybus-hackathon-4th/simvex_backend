@@ -30,4 +30,23 @@ public class ChatMessage {
     private SenderType senderType;
 
 
+    public static ChatMessage userMessage(String content) {
+        ChatMessage message = new ChatMessage();
+        message.chatContent = content;
+        message.senderType = SenderType.USER;
+        return message;
+    }
+
+    public static ChatMessage aiMessage(String content) {
+        ChatMessage message = new ChatMessage();
+        message.chatContent = content;
+        message.senderType = SenderType.AI;
+        return message;
+    }
+
+
+    protected void setChatSession(ChatSession session) {
+        this.chatSession = session;
+    }
+
 }

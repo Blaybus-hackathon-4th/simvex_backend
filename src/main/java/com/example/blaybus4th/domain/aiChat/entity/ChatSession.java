@@ -41,4 +41,23 @@ public class ChatSession {
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
 
+
+    public static ChatSession createChatSession(Member member, Object object) {
+        ChatSession chatSession = new ChatSession();
+        chatSession.member = member;
+        chatSession.object = object;
+        chatSession.chatSessionTitle = "";
+        return chatSession;
+    }
+
+    public void addMessage(ChatMessage message) {
+        this.chatMessages.add(message);
+        message.setChatSession(this);
+    }
+
+    public void updateTitle(String title) {
+        this.chatSessionTitle = title;
+    }
+
+
 }
