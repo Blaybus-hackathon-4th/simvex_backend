@@ -26,4 +26,12 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
             """
     )
     List<Model> findAllExcludingCurrentId(Long modelId);
+
+    @Query("""
+    select distinct m
+      from Model m
+      left join fetch m.modelComponents
+     where m.modelId in :modelIds
+""")
+    List<Model> findAllByIdsWithComponents(List<Long> modelIds);
 }
