@@ -42,6 +42,7 @@ public interface ModelRepository extends JpaRepository<Model, Long> {
              where m.object.objectId = :objectId
     """)
     List<Model> findAllByObjectId(Long objectId);
+    List<Model> findAllExcludingCurrentId(Long modelId);
 
     @Query("""
     select distinct m
